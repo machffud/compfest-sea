@@ -3,6 +3,8 @@ import './App.css';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
+import Services from './components/Services';
+import Contact from './components/Contact';
 
 function App() {
   const [activePage, setActivePage] = useState('home');
@@ -35,11 +37,11 @@ function App() {
     <div className="App">
       <Navigation activePage={activePage} />
       <Hero />
-      {/* <Services />
-      <MealPlans />
+      <Services />
+      {/* <MealPlans />
       <Subscription />
-      <Testimonials />
-      <Contact /> */}
+      <Testimonials /> */}
+      <Contact />
       <Footer />
     </div>
   );
