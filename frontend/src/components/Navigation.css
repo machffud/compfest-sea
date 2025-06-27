@@ -1,0 +1,147 @@
+.navigation {
+  background-color: var(--white);
+  box-shadow: var(--shadow);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+}
+
+.nav-brand .brand-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+}
+
+.nav-link.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* Mobile menu button */
+.mobile-menu-button {
+  display: none;
+  flex-direction: column;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  gap: 4px;
+}
+
+.mobile-menu-button span {
+  width: 25px;
+  height: 3px;
+  background-color: var(--primary-color);
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.mobile-menu-button.active span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-button.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-button.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .mobile-menu-button {
+    display: flex;
+  }
+
+  .nav-menu {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background-color: var(--white);
+    flex-direction: column;
+    gap: 0;
+    box-shadow: var(--shadow);
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 1rem 0;
+  }
+
+  .nav-menu.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-menu li {
+    width: 100%;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--background-light);
+  }
+
+  .nav-link:last-child {
+    border-bottom: none;
+  }
+
+  .nav-brand .brand-name {
+    font-size: 1.5rem;
+  }
+} 
