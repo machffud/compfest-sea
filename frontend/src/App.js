@@ -7,6 +7,7 @@ import Services from './components/Services';
 import Contact from './components/Contact';
 import MealPlans from './components/MealPlans';
 import Subscription from './components/Subscription';
+import Testimonials from './components/Testimonials';
 
 function App() {
   const [activePage, setActivePage] = useState('home');
@@ -42,7 +43,7 @@ function App() {
       <Services />
       <MealPlans />
       <Subscription />
-      {/* <Testimonials /> */}
+      <Testimonials />
       <Contact />
       <Footer />
     </div>
