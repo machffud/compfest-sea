@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import './Navigation.css';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from './AuthModal';
 
 const Navigation = ({ activePage }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -50,8 +54,19 @@ const Navigation = ({ activePage }) => {
               </a>
             </li>
           ))}
+          <li className="nav-auth">
+            {isAuthenticated ? (
+              <>
+                <span className="nav-user">Hi, {user.full_name.split(' ')[0]}</span>
+                <button className="nav-auth-btn" onClick={logout}>Logout</button>
+              </>
+            ) : (
+              <button className="nav-auth-btn" onClick={() => setAuthModalOpen(true)}>Login / Register</button>
+            )}
+          </li>
         </ul>
       </div>
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </nav>
   );
 };

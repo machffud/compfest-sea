@@ -382,4 +382,80 @@
     text-align: center;
     gap: 0.5rem;
   }
+}
+
+.auth-notice {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.auth-notice p {
+  color: #856404;
+  margin: 0;
+  font-weight: 500;
+}
+
+.login-prompt {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.login-prompt-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.login-prompt h2 {
+  color: #333;
+  margin-bottom: 12px;
+  font-size: 24px;
+}
+
+.login-prompt p {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.error-message {
+  background: #fdf2f2;
+  color: #e74c3c;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-input:disabled,
+.form-group input[type="radio"]:disabled,
+.form-group input[type="checkbox"]:disabled,
+.form-group textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.plan-option:has(input:disabled),
+.meal-type-option:has(input:disabled),
+.delivery-day-option:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 } 

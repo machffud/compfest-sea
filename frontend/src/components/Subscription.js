@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { subscriptionAPI } from '../services/api';
 import './Subscription.css';
 
 const Subscription = () => {
+  const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -14,6 +17,8 @@ const Subscription = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [error, setError] = useState('');
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const plans = [
     { value: 'diet', label: 'Diet Plan', price: 30000 },
@@ -37,20 +42,44 @@ const Subscription = () => {
     { value: 'sunday', label: 'Sunday' }
   ];
 
-  // Calculate total price based on formula
+  // Pre-fill form with user data if authenticated
   useEffect(() => {
-    if (formData.plan && formData.mealTypes.length > 0 && formData.deliveryDays.length > 0) {
-      const selectedPlan = plans.find(p => p.value === formData.plan);
-      const planPrice = selectedPlan.price;
-      const mealTypesCount = formData.mealTypes.length;
-      const deliveryDaysCount = formData.deliveryDays.length;
-      
-      const total = planPrice * mealTypesCount * deliveryDaysCount * 4.3;
-      setTotalPrice(total);
+    if (isAuthenticated && user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.full_name || '',
+        phone: user.phone || ''
+      }));
+    }
+  }, [isAuthenticated, user]);
+
+  // Calculate total price using backend API
+  useEffect(() => {
+    if (formData.plan && formData.mealTypes.length > 0 && formData.deliveryDays.length > 0 && isAuthenticated) {
+      const calculatePrice = async () => {
+        try {
+          const response = await subscriptionAPI.calculatePrice(
+            formData.plan,
+            formData.mealTypes,
+            formData.deliveryDays
+          );
+          setTotalPrice(response.data.total_price);
+        } catch (error) {
+          console.error('Error calculating price:', error);
+          // Fallback to frontend calculation
+          const selectedPlan = plans.find(p => p.value === formData.plan);
+          const planPrice = selectedPlan.price;
+          const mealTypesCount = formData.mealTypes.length;
+          const deliveryDaysCount = formData.deliveryDays.length;
+          const total = planPrice * mealTypesCount * deliveryDaysCount * 4.3;
+          setTotalPrice(total);
+        }
+      };
+      calculatePrice();
     } else {
       setTotalPrice(0);
     }
-  }, [formData.plan, formData.mealTypes, formData.deliveryDays]);
+  }, [formData.plan, formData.mealTypes, formData.deliveryDays, isAuthenticated]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -58,6 +87,7 @@ const Subscription = () => {
       ...prev,
       [name]: value
     }));
+    setError(''); // Clear error when user starts typing
   };
 
   const handleMealTypeChange = (mealType) => {
@@ -67,6 +97,7 @@ const Subscription = () => {
         ? prev.mealTypes.filter(type => type !== mealType)
         : [...prev.mealTypes, mealType]
     }));
+    setError('');
   };
 
   const handleDeliveryDayChange = (day) => {
@@ -76,39 +107,63 @@ const Subscription = () => {
         ? prev.deliveryDays.filter(d => d !== day)
         : [...prev.deliveryDays, day]
     }));
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     // Validation
     if (!formData.name || !formData.phone || !formData.plan || 
         formData.mealTypes.length === 0 || formData.deliveryDays.length === 0) {
-      alert('Please fill in all required fields (*)');
+      setError('Please fill in all required fields (*)');
       return;
     }
 
     setIsSubmitting(true);
+    setError('');
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
+    try {
+      const subscriptionData = {
+        name: formData.name,
+        phone: formData.phone,
+        plan: formData.plan,
+        meal_types: formData.mealTypes,
+        delivery_days: formData.deliveryDays,
+        allergies: formData.allergies || null
+      };
+
+      const response = await subscriptionAPI.create(subscriptionData);
       
-      // Reset form after success
-      setTimeout(() => {
-        setSubmitSuccess(false);
-        setFormData({
-          name: '',
-          phone: '',
-          plan: '',
-          mealTypes: [],
-          deliveryDays: [],
-          allergies: ''
-        });
-        setTotalPrice(0);
-      }, 5000);
-    }, 2000);
+      if (response.data.success) {
+        setSubmitSuccess(true);
+        
+        // Reset form after success
+        setTimeout(() => {
+          setSubmitSuccess(false);
+          setFormData({
+            name: user?.full_name || '',
+            phone: user?.phone || '',
+            plan: '',
+            mealTypes: [],
+            deliveryDays: [],
+            allergies: ''
+          });
+          setTotalPrice(0);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+      setError(error.response?.data?.detail || 'Failed to create subscription. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatPrice = (price) => {
@@ -121,6 +176,27 @@ const Subscription = () => {
   const getSelectedPlan = () => {
     return plans.find(p => p.value === formData.plan);
   };
+
+  // Show login prompt if user is not authenticated
+  if (showLoginPrompt) {
+    return (
+      <section id="subscription" className="section subscription">
+        <div className="container">
+          <div className="login-prompt">
+            <div className="login-prompt-icon">🔐</div>
+            <h2>Authentication Required</h2>
+            <p>Please log in or create an account to subscribe to our meal plans.</p>
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowLoginPrompt(false)}
+            >
+              Continue to Subscription
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (submitSuccess) {
     return (
@@ -153,6 +229,12 @@ const Subscription = () => {
         <p className="section-subtitle">
           Customize your healthy meal subscription with our flexible options
         </p>
+
+        {!isAuthenticated && (
+          <div className="auth-notice">
+            <p>⚠️ You need to be logged in to create a subscription. Please log in or register first.</p>
+          </div>
+        )}
 
         <div className="subscription-content">
           <div className="subscription-info">
@@ -209,6 +291,12 @@ const Subscription = () => {
             <form className="subscription-form" onSubmit={handleSubmit}>
               <h3>Create Your Subscription</h3>
               
+              {error && (
+                <div className="error-message">
+                  {error}
+                </div>
+              )}
+              
               <div className="form-group">
                 <label htmlFor="name">Full Name *</label>
                 <input
@@ -219,6 +307,7 @@ const Subscription = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter your full name"
+                  disabled={!isAuthenticated}
                 />
               </div>
 
@@ -232,6 +321,7 @@ const Subscription = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter your phone number"
+                  disabled={!isAuthenticated}
                 />
               </div>
 
@@ -247,6 +337,7 @@ const Subscription = () => {
                         checked={formData.plan === plan.value}
                         onChange={handleInputChange}
                         required
+                        disabled={!isAuthenticated}
                       />
                       <div className="plan-option-content">
                         <h4>{plan.label}</h4>
@@ -266,6 +357,7 @@ const Subscription = () => {
                         type="checkbox"
                         checked={formData.mealTypes.includes(mealType.value)}
                         onChange={() => handleMealTypeChange(mealType.value)}
+                        disabled={!isAuthenticated}
                       />
                       <span>{mealType.label}</span>
                     </label>
@@ -282,6 +374,7 @@ const Subscription = () => {
                         type="checkbox"
                         checked={formData.deliveryDays.includes(day.value)}
                         onChange={() => handleDeliveryDayChange(day.value)}
+                        disabled={!isAuthenticated}
                       />
                       <span>{day.label}</span>
                     </label>
@@ -298,15 +391,17 @@ const Subscription = () => {
                   onChange={handleInputChange}
                   rows="3"
                   placeholder="List any allergies, dietary restrictions, or special requirements..."
+                  disabled={!isAuthenticated}
                 />
               </div>
 
               <button 
                 type="submit" 
                 className={`btn btn-primary submit-btn ${isSubmitting ? 'loading' : ''}`}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isAuthenticated}
               >
-                {isSubmitting ? 'Processing...' : `Subscribe Now - ${formatPrice(totalPrice)}`}
+                {!isAuthenticated ? 'Please Login to Subscribe' : 
+                 isSubmitting ? 'Processing...' : `Subscribe Now - ${formatPrice(totalPrice)}`}
               </button>
             </form>
           </div>
