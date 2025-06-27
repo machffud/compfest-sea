@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Hero from './components/Hero';
 import Services from './components/Services';
 import Contact from './components/Contact';
+import MealPlans from './components/MealPlans';
 
 function App() {
   const [activePage, setActivePage] = useState('home');
@@ -38,8 +39,8 @@ function App() {
       <Navigation activePage={activePage} />
       <Hero />
       <Services />
-      {/* <MealPlans />
-      <Subscription />
+      <MealPlans />
+      {/* <Subscription />
       <Testimonials /> */}
       <Contact />
       <Footer />
