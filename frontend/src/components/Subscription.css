@@ -146,6 +146,35 @@
   border-color: var(--primary-color);
 }
 
+/* Phone validation styles */
+.form-group input.valid {
+  border-color: #28a745;
+  background-color: #f8fff9;
+}
+
+.form-group input.invalid {
+  border-color: #dc3545;
+  background-color: #fff8f8;
+}
+
+.validation-message {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.validation-message.valid {
+  color: #28a745;
+  background-color: #d4edda;
+}
+
+.validation-message.invalid {
+  color: #dc3545;
+  background-color: #f8d7da;
+}
+
 .form-group textarea {
   resize: vertical;
   min-height: 80px;

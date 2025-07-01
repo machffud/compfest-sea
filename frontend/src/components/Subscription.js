@@ -19,6 +19,7 @@ const Subscription = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [error, setError] = useState('');
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [phoneValidation, setPhoneValidation] = useState({ isValid: true, message: '' });
 
   const plans = [
     { value: 'diet', label: 'Diet Plan', price: 30000 },
@@ -88,6 +89,23 @@ const Subscription = () => {
       [name]: value
     }));
     setError(''); // Clear error when user starts typing
+    
+    // Real-time phone validation
+    if (name === 'phone') {
+      const isValid = validatePhoneNumber(value);
+      setPhoneValidation({
+        isValid: value === '' || isValid,
+        message: value === '' ? '' : isValid ? 'Valid phone number' : 'Phone number must be 10-13 digits'
+      });
+    }
+  };
+
+  // Phone number validation function
+  const validatePhoneNumber = (phone) => {
+    // Remove all non-digit characters
+    const cleanPhone = phone.replace(/\D/g, '');
+    // Check if length is between 10-13 digits
+    return cleanPhone.length >= 10 && cleanPhone.length <= 13;
   };
 
   const handleMealTypeChange = (mealType) => {
@@ -123,6 +141,12 @@ const Subscription = () => {
     if (!formData.name || !formData.phone || !formData.plan || 
         formData.mealTypes.length === 0 || formData.deliveryDays.length === 0) {
       setError('Please fill in all required fields (*)');
+      return;
+    }
+
+    // Phone number validation
+    if (!validatePhoneNumber(formData.phone)) {
+      setError('Phone number must be between 10-13 digits');
       return;
     }
 
@@ -320,9 +344,15 @@ const Subscription = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   required
-                  placeholder="Enter your phone number"
+                  placeholder="Enter your phone number (10-13 digits)"
                   disabled={!isAuthenticated}
+                  className={formData.phone && !phoneValidation.isValid ? 'invalid' : formData.phone && phoneValidation.isValid ? 'valid' : ''}
                 />
+                {formData.phone && (
+                  <div className={`validation-message ${phoneValidation.isValid ? 'valid' : 'invalid'}`}>
+                    {phoneValidation.message}
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -387,7 +417,7 @@ const Subscription = () => {
                 <textarea
                   id="allergies"
                   name="allergies"
-                  value={formData.allergies}
+                  value={formData.allergies || ''}
                   onChange={handleInputChange}
                   rows="3"
                   placeholder="List any allergies, dietary restrictions, or special requirements..."
