@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Float, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Float, DateTime, Boolean, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -32,6 +32,8 @@ class Subscription(Base):
     allergies = Column(Text, nullable=True)
     total_price = Column(Float, nullable=False)
     is_active = Column(Boolean, default=True)
+    pause_start_date = Column(Date, nullable=True)  # New field for pause start date
+    pause_end_date = Column(Date, nullable=True)    # New field for pause end date
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
