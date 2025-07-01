@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
 
-const Login = ({ onSwitchToRegister }) => {
+const Login = ({ onSwitchToRegister, onSuccess }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -26,7 +26,12 @@ const Login = ({ onSwitchToRegister }) => {
 
     const result = await login(formData.email, formData.password);
     
-    if (!result.success) {
+    if (result.success) {
+      // Auto-close modal on successful login
+      if (onSuccess) {
+        onSuccess();
+      }
+    } else {
       setError(result.error);
     }
     
