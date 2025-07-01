@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from datetime import timedelta
 import re
+from typing import Dict, Union, Any, List
 
 from ..database import get_db
 from ..models import User
@@ -201,15 +202,29 @@ def get_all_users(
     try:
         users = db.query(User).offset(skip).limit(limit).all()
         total = db.query(User).count()
+        users_list = []
+        for user in users:
+            users_list.append(
+                {
+                    "id": user.id,
+                    "full_name": user.full_name,
+                    "email": user.email,
+                    "is_active": user.is_active,
+                    "is_admin": user.is_admin,
+                    "created_at": user.created_at,
+                    "updated_at": user.updated_at
+                }
+            )
         
         return {
             "success": True,
             "message": "Users retrieved successfully",
-            "data": users,
+            "data": users_list,
             "total": total
         }
         
     except Exception as e:
+        print("Error 213", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve users"
