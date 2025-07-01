@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 import json
+from datetime import date
 
 from ..database import get_db
 from ..models import Subscription, User
-from ..schemas import SubscriptionBase, Subscription as SubscriptionSchema, SubscriptionResponse, ListResponse
+from ..schemas import SubscriptionBase, Subscription as SubscriptionSchema, SubscriptionResponse, ListResponse, PauseSubscriptionRequest
 from ..auth import get_current_user, get_current_admin_user, sanitize_input
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -74,7 +75,7 @@ def create_subscription(
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/", response_model=ListResponse)
+@router.get("/", response_model=List[SubscriptionSchema])
 def get_user_subscriptions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -84,20 +85,16 @@ def get_user_subscriptions(
         subscriptions = db.query(Subscription).filter(
             Subscription.user_id == current_user.id
         ).order_by(Subscription.created_at.desc()).all()
-        
+        print("subscriptions 88", subscriptions)
         # Convert JSON strings back to lists
         for sub in subscriptions:
+            print("sub 88", sub)
             sub.meal_types = json.loads(sub.meal_types)
             sub.delivery_days = json.loads(sub.delivery_days)
-        
+            print("delivery days 94", sub.delivery_days)
         total = len(subscriptions)
-        
-        return ListResponse(
-            success=True,
-            message="User subscriptions retrieved successfully",
-            data=subscriptions,
-            total=total
-        )
+        print("Hasil return")
+        return subscriptions
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -188,8 +185,84 @@ def calculate_price(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.put("/{subscription_id}/pause")
+def pause_subscription(
+    subscription_id: int,
+    pause_request: PauseSubscriptionRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Pause a subscription for a specific date range (user can only pause their own)"""
+    try:
+        subscription = db.query(Subscription).filter(
+            Subscription.id == subscription_id,
+            Subscription.user_id == current_user.id
+        ).first()
+        
+        if not subscription:
+            raise HTTPException(status_code=404, detail="Subscription not found")
+        
+        if not subscription.is_active:
+            raise HTTPException(status_code=400, detail="Cannot pause an inactive subscription")
+        
+        # Validate pause dates
+        if pause_request.pause_start_date < date.today():
+            raise HTTPException(status_code=400, detail="Pause start date cannot be in the past")
+        
+        subscription.pause_start_date = pause_request.pause_start_date
+        subscription.pause_end_date = pause_request.pause_end_date
+        db.commit()
+        
+        return {
+            "success": True, 
+            "message": f"Subscription paused from {pause_request.pause_start_date} to {pause_request.pause_end_date}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.put("/{subscription_id}/resume")
+def resume_subscription(
+    subscription_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Resume a paused subscription (user can only resume their own)"""
+    try:
+        subscription = db.query(Subscription).filter(
+            Subscription.id == subscription_id,
+            Subscription.user_id == current_user.id
+        ).first()
+        
+        if not subscription:
+            raise HTTPException(status_code=404, detail="Subscription not found")
+        
+        if not subscription.is_active:
+            raise HTTPException(status_code=400, detail="Cannot resume an inactive subscription")
+        
+        if not subscription.pause_start_date or not subscription.pause_end_date:
+            raise HTTPException(status_code=400, detail="Subscription is not paused")
+        
+        subscription.pause_start_date = None
+        subscription.pause_end_date = None
+        db.commit()
+        
+        return {
+            "success": True, 
+            "message": "Subscription resumed successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
 # Admin routes
-@router.get("/admin/all", response_model=ListResponse)
+@router.get("/admin/all", response_model=List[SubscriptionSchema])
 def get_all_subscriptions(
     skip: int = 0,
     limit: int = 100,
@@ -207,12 +280,7 @@ def get_all_subscriptions(
         
         total = db.query(Subscription).count()
         
-        return ListResponse(
-            success=True,
-            message="All subscriptions retrieved successfully",
-            data=subscriptions,
-            total=total
-        )
+        return subscriptions
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
