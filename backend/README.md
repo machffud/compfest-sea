@@ -3,16 +3,6 @@
 ## Overview
 Secure backend API for SEA Catering built with FastAPI, featuring comprehensive authentication, authorization, and input validation to protect against common security threats.
 
-## Security Features
-
-- **🔐 Authentication**: JWT-based user authentication with bcrypt password hashing
-- **🛡️ Authorization**: Role-based access control (User/Admin)
-- **🛡️ XSS Protection**: Input sanitization and HTML escaping
-- **🛡️ SQL Injection Protection**: Parameterized queries with SQLAlchemy ORM
-- **🛡️ CSRF Protection**: JWT tokens prevent cross-site request forgery
-- **✅ Input Validation**: Comprehensive field validation and sanitization
-- **🔒 Secure Headers**: CORS and trusted host middleware
-
 ## Features
 
 - **User Management**: Registration, login, profile management
