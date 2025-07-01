@@ -1,17 +1,16 @@
 # SEA Catering Backend API v2.0
 
 ## Overview
-Secure backend API for SEA Catering built with FastAPI, featuring comprehensive authentication, authorization, and input validation to protect against common security threats.
+Secure backend API for SEA Catering built with FastAPI, featuring comprehensive authentication, authorization, subscription management, and admin dashboard functionality with real-time analytics.
 
 ## Features
 
-- **User Management**: Registration, login, profile management
-- **Subscription Management**: Create and manage customer subscriptions
-- **Testimonial System**: Submit and approve customer reviews
+- **User Management**: Registration, login, profile management, admin user management
+- **Subscription Management**: Create, pause, resume, and cancel customer subscriptions
 - **Meal Plan Management**: CRUD operations for meal plans
+- **Admin Dashboard**: Real-time analytics and metrics
 - **Real-time Price Calculation**: Dynamic pricing based on selections
 - **Database Integration**: SQLite with SQLAlchemy ORM
-- **API Documentation**: Auto-generated Swagger/OpenAPI docs
 
 ## Tech Stack
 
@@ -21,6 +20,7 @@ Secure backend API for SEA Catering built with FastAPI, featuring comprehensive 
 - **Validation**: Pydantic
 - **Authentication**: JWT + bcrypt
 - **Documentation**: Swagger UI / ReDoc
+- **Security**: Input sanitization, CORS, trusted hosts
 
 ## Installation
 
@@ -32,7 +32,7 @@ Secure backend API for SEA Catering built with FastAPI, featuring comprehensive 
 
 1. **Navigate to backend directory:**
    ```bash
-   cd sea/backend
+   cd compfest-sea/backend
    ```
 
 2. **Install dependencies:**
@@ -58,11 +58,11 @@ Secure backend API for SEA Catering built with FastAPI, featuring comprehensive 
 
 ## API Endpoints
 
-### Authentication (`/api/v1/auth/`)
+### Authentication (`/auth/`)
 
 #### User Registration
 ```http
-POST /api/v1/auth/register
+POST /auth/register
 Content-Type: application/json
 
 {
@@ -74,7 +74,7 @@ Content-Type: application/json
 
 #### User Login
 ```http
-POST /api/v1/auth/login
+POST /auth/login
 Content-Type: application/json
 
 {
@@ -85,21 +85,26 @@ Content-Type: application/json
 
 #### Get User Profile
 ```http
-GET /api/v1/auth/me
+GET /auth/me
 Authorization: Bearer <jwt_token>
 ```
 
 #### Update Profile
 ```http
-PUT /api/v1/auth/me?full_name=New Name
+PUT /auth/me
 Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+{
+  "full_name": "New Name"
+}
 ```
 
-### Subscriptions (Authenticated)
+### Subscriptions (`/subscriptions/`)
 
 #### Create Subscription
 ```http
-POST /api/v1/subscriptions/
+POST /subscriptions/
 Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
@@ -115,21 +120,45 @@ Content-Type: application/json
 
 #### Get User Subscriptions
 ```http
-GET /api/v1/subscriptions/
+GET /subscriptions/
+Authorization: Bearer <jwt_token>
+```
+
+#### Pause Subscription
+```http
+PUT /subscriptions/{subscription_id}/pause
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+{
+  "pause_start_date": "2024-07-01",
+  "pause_end_date": "2024-07-15"
+}
+```
+
+#### Resume Subscription
+```http
+PUT /subscriptions/{subscription_id}/resume
+Authorization: Bearer <jwt_token>
+```
+
+#### Cancel Subscription
+```http
+PUT /subscriptions/{subscription_id}/deactivate
 Authorization: Bearer <jwt_token>
 ```
 
 #### Calculate Price
 ```http
-GET /api/v1/subscriptions/calculate-price/?plan=protein&meal_types=["breakfast","dinner"]&delivery_days=["monday","tuesday","wednesday","thursday","friday"]
+GET /subscriptions/calculate-price/?plan=protein&meal_types=["breakfast","dinner"]&delivery_days=["monday","tuesday","wednesday","thursday","friday"]
 Authorization: Bearer <jwt_token>
 ```
 
-### Testimonials
+### Testimonials (`/testimonials/`)
 
 #### Submit Testimonial (Authenticated)
 ```http
-POST /api/v1/testimonials/
+POST /testimonials/
 Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
@@ -140,51 +169,97 @@ Content-Type: application/json
 }
 ```
 
-#### Get Approved Testimonials (Public)
-```http
-GET /api/v1/testimonials/?approved_only=true&skip=0&limit=100
-```
-
 #### Get User Testimonials (Authenticated)
 ```http
-GET /api/v1/testimonials/my
+GET /testimonials/
 Authorization: Bearer <jwt_token>
 ```
 
-### Meal Plans (Public)
+### Meal Plans (`/meal-plans/`)
 
 #### Get All Meal Plans
 ```http
-GET /api/v1/meal-plans/?active_only=true&skip=0&limit=100
+GET /meal-plans/
 ```
 
 #### Get Plans by Type
 ```http
-GET /api/v1/meal-plans/type/diet
+GET /meal-plans/type/diet
 ```
 
-#### Get Plan Prices
+### Dashboard (`/dashboard/`)
+
+#### Get Dashboard Metrics (Admin Only)
 ```http
-GET /api/v1/meal-plans/prices/
+GET /dashboard/admin/metrics?start_date=2024-01-01&end_date=2024-12-31
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Get Paused Subscriptions Count (Admin Only)
+```http
+GET /dashboard/admin/subscriptions/paused
+Authorization: Bearer <admin_jwt_token>
 ```
 
 ### Admin Routes
 
 #### Get All Users (Admin Only)
 ```http
-GET /api/v1/auth/users
+GET /auth/users
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Activate User (Admin Only)
+```http
+PUT /auth/users/{user_id}/activate
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Deactivate User (Admin Only)
+```http
+PUT /auth/users/{user_id}/deactivate
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Make User Admin (Admin Only)
+```http
+PUT /auth/users/{user_id}/make-admin
 Authorization: Bearer <admin_jwt_token>
 ```
 
 #### Get All Subscriptions (Admin Only)
 ```http
-GET /api/v1/subscriptions/admin/all
+GET /subscriptions/admin/all
 Authorization: Bearer <admin_jwt_token>
 ```
 
-#### Get Pending Testimonials (Admin Only)
+#### Get Any Subscription (Admin Only)
 ```http
-GET /api/v1/testimonials/admin/pending
+GET /subscriptions/admin/{subscription_id}
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Deactivate Any Subscription (Admin Only)
+```http
+PUT /subscriptions/admin/{subscription_id}/deactivate
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Get All Testimonials (Admin Only)
+```http
+GET /testimonials/admin/all
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Approve Testimonial (Admin Only)
+```http
+PUT /testimonials/admin/{testimonial_id}/approve
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Reject Testimonial (Admin Only)
+```http
+PUT /testimonials/admin/{testimonial_id}/reject
 Authorization: Bearer <admin_jwt_token>
 ```
 
@@ -203,11 +278,6 @@ Authorization: Bearer <admin_jwt_token>
 - **Name**: Letters, spaces, and common punctuation only
 - **Message**: Length limits and content filtering
 
-### XSS Protection
-- HTML escaping of all user inputs
-- Automatic removal of `<script>` tags
-- Blocking of `javascript:` protocols
-- Removal of event handlers (`onclick`, `onload`, etc.)
 
 ### SQL Injection Protection
 - All database operations use SQLAlchemy ORM
@@ -238,6 +308,8 @@ Authorization: Bearer <admin_jwt_token>
 - `allergies`: Optional dietary restrictions
 - `total_price`: Calculated price
 - `is_active`: Subscription status
+- `pause_start_date`: Pause start date (nullable)
+- `pause_end_date`: Pause end date (nullable)
 - `created_at`: Creation timestamp
 - `updated_at`: Update timestamp
 
@@ -296,7 +368,8 @@ backend/
 │       ├── auth.py          # Authentication endpoints
 │       ├── subscriptions.py # Subscription endpoints
 │       ├── testimonials.py  # Testimonial endpoints
-│       └── meal_plans.py    # Meal plan endpoints
+│       ├── meal_plans.py    # Meal plan endpoints
+│       └── dashboard.py     # Dashboard analytics endpoints
 ├── requirements.txt         # Python dependencies
 ├── create_admin.py          # Admin user creation script
 ├── run.py                   # Application runner
@@ -328,7 +401,7 @@ Use the Swagger UI at http://localhost:8000/docs to test all endpoints interacti
 ### Security Testing
 ```bash
 # Test XSS protection
-curl -X POST "http://localhost:8000/api/v1/testimonials/" \
+curl -X POST "http://localhost:8000/testimonials/" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -338,7 +411,7 @@ curl -X POST "http://localhost:8000/api/v1/testimonials/" \
   }'
 
 # Test SQL injection protection
-curl -X POST "http://localhost:8000/api/v1/auth/login" \
+curl -X POST "http://localhost:8000/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "\"; DROP TABLE users; --",
@@ -346,18 +419,6 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" \
   }'
 ```
 
-## Production Considerations
-
-1. **Environment Variables**: Move SECRET_KEY to environment variables
-2. **Database**: Migrate to PostgreSQL for production
-3. **HTTPS**: Enable HTTPS in production
-4. **Authentication**: Add JWT refresh tokens
-5. **Rate Limiting**: Implement API rate limiting
-6. **Logging**: Add security event logging
-7. **Monitoring**: Implement security monitoring
-8. **Backup**: Regular database backups
-9. **Updates**: Keep dependencies updated
-10. **Audit**: Regular security audits
 
 ## Troubleshooting
 
