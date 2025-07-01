@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from .database import engine
 from .models import Base
-from .routes import subscriptions, testimonials, meal_plans, auth
+from .routes import subscriptions, testimonials, meal_plans, auth, dashboard
 
 # Create database tables
 @asynccontextmanager
@@ -44,6 +44,7 @@ app.include_router(auth.router)
 app.include_router(subscriptions.router)
 app.include_router(testimonials.router)
 app.include_router(meal_plans.router)
+app.include_router(dashboard.router)
 
 @app.get("/")
 async def root():
