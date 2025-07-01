@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import './Register.css';
 
-const Register = ({ onSwitchToLogin }) => {
+const Register = ({ onSwitchToLogin, onSuccess }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -70,6 +70,13 @@ const Register = ({ onSwitchToLogin }) => {
         password: '',
         confirmPassword: ''
       });
+      
+      // Auto-close modal after a short delay to show success message
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 2000);
     } else {
       setError(result.error);
     }
