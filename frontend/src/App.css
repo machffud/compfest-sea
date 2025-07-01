@@ -2,6 +2,37 @@
   text-align: left;
 }
 
+.dashboard-container {
+  padding-top: 70px; /* Account for fixed navigation */
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.dashboard-close {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+}
+
+.btn-back-to-site {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back-to-site:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -32,4 +63,17 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-color);
+}
+
+/* Responsive design for dashboard */
+@media (max-width: 768px) {
+  .dashboard-close {
+    bottom: 1rem;
+    right: 1rem;
+  }
+  
+  .btn-back-to-site {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+  }
 } 

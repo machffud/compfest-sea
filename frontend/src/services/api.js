@@ -42,6 +42,11 @@ export const authAPI = {
   getProfile: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/me', data),
   logout: () => api.post('/auth/logout'),
+  // Admin endpoints
+  getUsers: (skip = 0, limit = 100) => api.get('/auth/users', { params: { skip, limit } }),
+  activateUser: (id) => api.put(`/auth/users/${id}/activate`),
+  deactivateUser: (id) => api.put(`/auth/users/${id}/deactivate`),
+  makeUserAdmin: (id) => api.put(`/auth/users/${id}/make-admin`),
 };
 
 // Subscription API calls
@@ -50,6 +55,8 @@ export const subscriptionAPI = {
   getUserSubscriptions: () => api.get('/subscriptions/'),
   getSubscription: (id) => api.get(`/subscriptions/${id}`),
   deactivate: (id) => api.put(`/subscriptions/${id}/deactivate`),
+  pause: (id, pauseData) => api.put(`/subscriptions/${id}/pause`, pauseData),
+  resume: (id) => api.put(`/subscriptions/${id}/resume`),
   calculatePrice: (plan, mealTypes, deliveryDays) => 
     api.get('/subscriptions/calculate-price/', {
       params: {
