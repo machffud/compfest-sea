@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from './Login';
 import Register from './Register';
 import './AuthModal.css';
@@ -22,6 +22,11 @@ const AuthModal = ({ isOpen, onClose }) => {
     }
   };
 
+  // Auto-close on successful login/register
+  const handleAuthSuccess = () => {
+    onClose();
+  };
+
   return (
     <div className="auth-modal-overlay" onClick={handleBackdropClick}>
       <div className="auth-modal">
@@ -29,9 +34,9 @@ const AuthModal = ({ isOpen, onClose }) => {
           ×
         </button>
         {isLogin ? (
-          <Login onSwitchToRegister={handleSwitchToRegister} />
+          <Login onSwitchToRegister={handleSwitchToRegister} onSuccess={handleAuthSuccess} />
         ) : (
-          <Register onSwitchToLogin={handleSwitchToLogin} />
+          <Register onSwitchToLogin={handleSwitchToLogin} onSuccess={handleAuthSuccess} />
         )}
       </div>
     </div>
