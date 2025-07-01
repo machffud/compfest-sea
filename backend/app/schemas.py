@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator, EmailStr
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 import json
 import re
 
@@ -130,6 +130,8 @@ class Subscription(SubscriptionBase):
     user_id: int
     total_price: float
     is_active: bool
+    pause_start_date: Optional[date] = None
+    pause_end_date: Optional[date] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -253,4 +255,28 @@ class ListResponse(BaseModel):
 class UserResponse(BaseModel):
     success: bool
     message: str
-    user: Optional[User] = None 
+    user: Optional[User] = None
+
+# Dashboard Schemas
+class PauseSubscriptionRequest(BaseModel):
+    pause_start_date: date
+    pause_end_date: date
+
+    @validator('pause_end_date')
+    def validate_pause_dates(cls, v, values):
+        if 'pause_start_date' in values and v <= values['pause_start_date']:
+            raise ValueError('Pause end date must be after pause start date')
+        return v
+
+class DashboardMetrics(BaseModel):
+    new_subscriptions: int
+    monthly_recurring_revenue: float
+    reactivations: int
+    active_subscriptions: int
+    date_range_start: date
+    date_range_end: date
+
+class AdminDashboardResponse(BaseModel):
+    success: bool
+    message: str
+    metrics: DashboardMetrics 
